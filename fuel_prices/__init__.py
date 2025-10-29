@@ -1,0 +1,1 @@
+default_app_config = "fuel_prices.apps.FuelPricesConfig"

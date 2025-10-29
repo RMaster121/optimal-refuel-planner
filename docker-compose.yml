@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: refuel_planner_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-optimal_refuel_planner}
+      POSTGRES_USER: ${POSTGRES_USER:-optimal_refuel_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-optimal_refuel_user} -d ${POSTGRES_DB:-optimal_refuel_planner}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - refuel_planner
+
+  redis:
+    image: redis:7-alpine
+    container_name: refuel_planner_redis
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - refuel_planner
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: refuel_planner_web
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn refuel_planner.wsgi:application --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS:-3}"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8000/api/health/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - refuel_planner
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+
+networks:
+  refuel_planner:
+    driver: bridge

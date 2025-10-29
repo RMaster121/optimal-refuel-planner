@@ -1,0 +1,1 @@
+"""Tests for fuel_prices app."""
