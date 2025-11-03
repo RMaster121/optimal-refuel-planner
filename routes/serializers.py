@@ -45,13 +45,13 @@ class RouteCreateSerializer(serializers.ModelSerializer):
     waypoint_interval_km = serializers.IntegerField(
         write_only=True,
         required=False,
-        default=50,
+        default=20,
         min_value=10,
         max_value=200,
         help_text=(
             "Distance between waypoints in km. "
-            "Default: 50 (recommended for most routes). "
-            "Use 25 for small countries or complex tri-border areas."
+            "Default: 20 (safer for algorithm). "
+            "Use higher values (50-100) for long simple routes."
         )
     )
     
@@ -113,7 +113,7 @@ class RouteCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Process GPX file and create Route instance."""
         gpx_file = validated_data.pop('gpx_file')
-        waypoint_interval_km = validated_data.pop('waypoint_interval_km', 50)
+        waypoint_interval_km = validated_data.pop('waypoint_interval_km', 20)
         user = self.context['request'].user
         
         try:
