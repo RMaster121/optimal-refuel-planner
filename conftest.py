@@ -196,7 +196,6 @@ def route(db, user):
     """Create a test route."""
     return Route.objects.create(
         user=user,
-        google_maps_url='https://maps.google.com/test',
         origin='Warsaw, Poland',
         destination='Berlin, Germany',
         total_distance_km=Decimal('520.00'),
@@ -240,3 +239,55 @@ def refuel_stop(db, refuel_plan, country_poland, fuel_price_pl_gasoline):
         latitude=Decimal('52.2297'),
         longitude=Decimal('21.0122')
     )
+
+
+# ============================================================================
+# GPX FIXTURES
+# ============================================================================
+
+@pytest.fixture
+def simple_gpx_content():
+    """Simple valid GPX file content for testing."""
+    return """<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="test">
+    <trk>
+        <name>Warsaw to Berlin</name>
+        <trkseg>
+            <trkpt lat="52.2297" lon="21.0122"><ele>100</ele></trkpt>
+            <trkpt lat="52.5200" lon="13.4050"><ele>50</ele></trkpt>
+        </trkseg>
+    </trk>
+</gpx>"""
+
+
+@pytest.fixture
+def route_format_gpx_content():
+    """GPX file using route instead of track."""
+    return """<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="test">
+    <rte>
+        <name>Krakow to Wroclaw</name>
+        <rtept lat="50.0647" lon="19.9450"></rtept>
+        <rtept lat="51.1079" lon="17.0385"></rtept>
+    </rte>
+</gpx>"""
+
+
+@pytest.fixture
+def empty_gpx_content():
+    """Empty GPX file without trackpoints."""
+    return """<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="test">
+    <trk><name>Empty</name></trk>
+</gpx>"""
+
+
+@pytest.fixture
+def gpx_file_simple(simple_gpx_content):
+    """Create a file-like object from simple GPX content."""
+    import io
+    gpx_bytes = simple_gpx_content.encode('utf-8')
+    gpx_file = io.BytesIO(gpx_bytes)
+    gpx_file.name = 'test_route.gpx'
+    gpx_file.size = len(gpx_bytes)
+    return gpx_file

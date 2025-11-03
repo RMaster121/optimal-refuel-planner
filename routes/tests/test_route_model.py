@@ -16,7 +16,6 @@ class TestRouteModel:
         """Should create route with valid data."""
         route = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -28,7 +27,6 @@ class TestRouteModel:
         )
         
         assert route.user == user
-        assert route.google_maps_url == 'https://maps.google.com/test'
         assert route.origin == 'Warsaw, Poland'
         assert route.destination == 'Berlin, Germany'
         assert route.total_distance_km == Decimal('520.00')
@@ -39,7 +37,6 @@ class TestRouteModel:
         """Should return formatted string with origin, destination, and distance."""
         route = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Paris, France',
             destination='London, UK',
             total_distance_km=Decimal('450.25'),
@@ -53,7 +50,6 @@ class TestRouteModel:
         """Should sanitize origin on validation."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='  Warsaw, Poland  ',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -68,7 +64,6 @@ class TestRouteModel:
         """Should sanitize destination on validation."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='  Berlin, Germany  ',
             total_distance_km=Decimal('520.00'),
@@ -83,7 +78,6 @@ class TestRouteModel:
         """Should reject origin with invalid characters."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw<script>alert(1)</script>',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -100,7 +94,6 @@ class TestRouteModel:
         """Should reject destination with invalid characters."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin@#$%',
             total_distance_km=Decimal('520.00'),
@@ -117,7 +110,6 @@ class TestRouteModel:
         """Should raise ValidationError for non-positive distance."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('0'),
@@ -135,7 +127,6 @@ class TestRouteModel:
         """Should raise ValidationError for negative distance."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('-100.00'),
@@ -152,7 +143,6 @@ class TestRouteModel:
         """Should raise ValidationError if waypoints is not a list."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -170,7 +160,6 @@ class TestRouteModel:
         """Should raise ValidationError if countries is not a list."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -188,7 +177,6 @@ class TestRouteModel:
         """Should allow empty waypoints list."""
         route = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -202,7 +190,6 @@ class TestRouteModel:
         """Should allow empty countries list."""
         route = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -216,7 +203,6 @@ class TestRouteModel:
         """Should default waypoints to empty list."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -230,7 +216,6 @@ class TestRouteModel:
         """Should default countries to empty list."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -242,7 +227,6 @@ class TestRouteModel:
     def test_user_is_required(self, db):
         """Should raise ValidationError when user is missing."""
         route = Route(
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -255,27 +239,10 @@ class TestRouteModel:
         
         assert 'user' in exc_info.value.error_dict
 
-    def test_google_maps_url_is_required(self, db, user):
-        """Should raise ValidationError when google_maps_url is missing."""
-        route = Route(
-            user=user,
-            origin='Warsaw, Poland',
-            destination='Berlin, Germany',
-            total_distance_km=Decimal('520.00'),
-            waypoints=[],
-            countries=['PL', 'DE']
-        )
-        
-        with pytest.raises(ValidationError) as exc_info:
-            route.full_clean()
-        
-        assert 'google_maps_url' in exc_info.value.error_dict
-
     def test_origin_is_required(self, db, user):
         """Should raise ValidationError when origin is missing."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
             waypoints=[],
@@ -291,7 +258,6 @@ class TestRouteModel:
         """Should raise ValidationError when destination is missing."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             total_distance_km=Decimal('520.00'),
             waypoints=[],
@@ -307,7 +273,6 @@ class TestRouteModel:
         """Should raise ValidationError when total_distance_km is missing."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             waypoints=[],
@@ -323,7 +288,6 @@ class TestRouteModel:
         """Should allow multiple routes for the same user."""
         route1 = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test1',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -333,7 +297,6 @@ class TestRouteModel:
         
         route2 = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test2',
             origin='Paris, France',
             destination='London, UK',
             total_distance_km=Decimal('450.00'),
@@ -348,7 +311,6 @@ class TestRouteModel:
         """Should allow different users to have the same route."""
         route1 = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test1',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -358,7 +320,6 @@ class TestRouteModel:
         
         route2 = Route.objects.create(
             user=another_user,
-            google_maps_url='https://maps.google.com/test2',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -374,7 +335,6 @@ class TestRouteModel:
         """Should order routes by created_at in descending order (newest first)."""
         route1 = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test1',
             origin='Route 1',
             destination='Dest 1',
             total_distance_km=Decimal('100.00'),
@@ -384,7 +344,6 @@ class TestRouteModel:
         
         route2 = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test2',
             origin='Route 2',
             destination='Dest 2',
             total_distance_km=Decimal('200.00'),
@@ -394,7 +353,6 @@ class TestRouteModel:
         
         route3 = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test3',
             origin='Route 3',
             destination='Dest 3',
             total_distance_km=Decimal('300.00'),
@@ -414,7 +372,6 @@ class TestRouteModel:
         before = timezone.now()
         route = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -430,7 +387,6 @@ class TestRouteModel:
         """Should not change created_at on update."""
         route = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -473,7 +429,6 @@ class TestRouteModel:
         
         route = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -485,23 +440,6 @@ class TestRouteModel:
         assert route.waypoints[0]['city'] == 'Warsaw'
         assert route.waypoints[1]['city'] == 'Poznań'
         assert route.waypoints[2]['city'] == 'Berlin'
-
-    def test_url_field_validates_url_format(self, db, user):
-        """Should validate URL format for google_maps_url."""
-        route = Route(
-            user=user,
-            google_maps_url='not-a-valid-url',
-            origin='Warsaw, Poland',
-            destination='Berlin, Germany',
-            total_distance_km=Decimal('520.00'),
-            waypoints=[],
-            countries=['PL', 'DE']
-        )
-        
-        with pytest.raises(ValidationError) as exc_info:
-            route.full_clean()
-        
-        assert 'google_maps_url' in exc_info.value.error_dict
 
     def test_route_fixture(self, route):
         """Should work with route fixture."""
@@ -515,7 +453,6 @@ class TestRouteModel:
         """Should call full_clean() on save (ValidatedModel behavior)."""
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('0'),  # Invalid - not positive
@@ -532,7 +469,6 @@ class TestRouteModel:
         long_origin = 'A' * 250  # Exceeds max_length of 200
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin=long_origin,
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.00'),
@@ -550,7 +486,6 @@ class TestRouteModel:
         long_destination = 'B' * 250  # Exceeds max_length of 200
         route = Route(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination=long_destination,
             total_distance_km=Decimal('520.00'),
@@ -567,7 +502,6 @@ class TestRouteModel:
         """Should accept unicode characters in locations."""
         route = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Łódź, Polska',
             destination='München, Deutschland',
             total_distance_km=Decimal('750.00'),
@@ -582,7 +516,6 @@ class TestRouteModel:
         """Should store distance with proper decimal precision."""
         route = Route.objects.create(
             user=user,
-            google_maps_url='https://maps.google.com/test',
             origin='Warsaw, Poland',
             destination='Berlin, Germany',
             total_distance_km=Decimal('520.47'),

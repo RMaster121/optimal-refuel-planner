@@ -10,17 +10,13 @@ from refuel_planner.validators import (
 
 
 class Route(ValidatedModel):
-    """Parsed route data extracted from Google Maps URLs."""
+    """Route data from GPX file uploads."""
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="routes",
         help_text="User who created this route.",
-    )
-    google_maps_url = models.URLField(
-        max_length=500,
-        help_text="Original Google Maps URL used to generate this route.",
     )
     origin = models.CharField(
         max_length=200,

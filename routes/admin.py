@@ -18,7 +18,7 @@ class RouteAdmin(admin.ModelAdmin):
     ordering = ("-created_at",)
     readonly_fields = ("created_at",)
     fieldsets = (
-        (None, {"fields": ("user", "google_maps_url")}),
+        (None, {"fields": ("user",)}),
         ("Route details", {"fields": ("origin", "destination", "total_distance_km")}),
         ("Geographic data", {"fields": ("waypoints", "countries")}),
         ("Metadata", {"fields": ("created_at",)}),

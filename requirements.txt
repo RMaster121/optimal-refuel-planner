@@ -9,7 +9,10 @@ python-decouple>=3.8
 requests>=2.31
 gunicorn>=21.2
 bleach>=6.0
-pytest>=7.4
-pytest-django>=4.5
-pytest-cov>=4.1
-pytest-xdist>=3.3
+gpxpy==1.6.2
+geopandas>=1.1.1
+shapely==2.1.2
+pytest>=8.4.2
+pytest-django>=4.11.1
+pytest-cov>=7.0.0
+pytest-xdist>=3.8.0
