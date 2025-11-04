@@ -23,9 +23,9 @@ class TestMinimumStopsStrategy:
         strategy = MinimumStopsStrategy(car_gasoline, reservoir_km=100)
         
         waypoints = [
-            {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start': 0},
-            {'lat': 52.1, 'lng': 21.5, 'country_code': 'PL', 'distance_from_start': 100},
-            {'lat': 52.2, 'lng': 22.0, 'country_code': 'PL', 'distance_from_start': 200},
+            {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start_km': 0},
+            {'lat': 52.1, 'lng': 21.5, 'country_code': 'PL', 'distance_from_start_km': 100},
+            {'lat': 52.2, 'lng': 22.0, 'country_code': 'PL', 'distance_from_start_km': 200},
         ]
         
         stops = strategy.calculate_plan(waypoints)
@@ -49,7 +49,7 @@ class TestMinimumStopsStrategy:
                 'lat': 52.0 + i * 0.1,
                 'lng': 21.0 + i * 0.1,
                 'country_code': 'PL',
-                'distance_from_start': i * 100
+                'distance_from_start_km': i * 100
             })
         
         stops = strategy.calculate_plan(waypoints)
@@ -70,11 +70,11 @@ class TestMinimumStopsStrategy:
         strategy = MinimumStopsStrategy(car_gasoline, reservoir_km=100)
         
         waypoints = [
-            {'lat': 52.23, 'lng': 21.01, 'country_code': 'PL', 'distance_from_start': 0},
-            {'lat': 52.40, 'lng': 19.50, 'country_code': 'PL', 'distance_from_start': 150},
-            {'lat': 52.50, 'lng': 17.00, 'country_code': 'PL', 'distance_from_start': 300},
-            {'lat': 52.40, 'lng': 14.50, 'country_code': 'DE', 'distance_from_start': 450},
-            {'lat': 52.52, 'lng': 13.40, 'country_code': 'DE', 'distance_from_start': 575},
+            {'lat': 52.23, 'lng': 21.01, 'country_code': 'PL', 'distance_from_start_km': 0},
+            {'lat': 52.40, 'lng': 19.50, 'country_code': 'PL', 'distance_from_start_km': 150},
+            {'lat': 52.50, 'lng': 17.00, 'country_code': 'PL', 'distance_from_start_km': 300},
+            {'lat': 52.40, 'lng': 14.50, 'country_code': 'DE', 'distance_from_start_km': 450},
+            {'lat': 52.52, 'lng': 13.40, 'country_code': 'DE', 'distance_from_start_km': 575},
         ]
         
         stops = strategy.calculate_plan(waypoints)
@@ -91,12 +91,12 @@ class TestMinimumStopsStrategy:
         strategy = MinimumStopsStrategy(car_gasoline, reservoir_km=100)
         
         waypoints = [
-            {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start': 0},
-            {'lat': 52.2, 'lng': 19.0, 'country_code': 'PL', 'distance_from_start': 200},
-            {'lat': 52.4, 'lng': 17.0, 'country_code': 'PL', 'distance_from_start': 400},
-            {'lat': 52.5, 'lng': 15.0, 'country_code': 'DE', 'distance_from_start': 600},
-            {'lat': 52.6, 'lng': 13.0, 'country_code': 'DE', 'distance_from_start': 800},
-            {'lat': 52.7, 'lng': 11.0, 'country_code': 'DE', 'distance_from_start': 1000},
+            {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start_km': 0},
+            {'lat': 52.2, 'lng': 19.0, 'country_code': 'PL', 'distance_from_start_km': 200},
+            {'lat': 52.4, 'lng': 17.0, 'country_code': 'PL', 'distance_from_start_km': 400},
+            {'lat': 52.5, 'lng': 15.0, 'country_code': 'DE', 'distance_from_start_km': 600},
+            {'lat': 52.6, 'lng': 13.0, 'country_code': 'DE', 'distance_from_start_km': 800},
+            {'lat': 52.7, 'lng': 11.0, 'country_code': 'DE', 'distance_from_start_km': 1000},
         ]
         
         stops = strategy.calculate_plan(waypoints)
@@ -115,8 +115,8 @@ class TestMinimumStopsStrategy:
         strategy = MinimumStopsStrategy(car_gasoline, reservoir_km=100)
         
         waypoints = [
-            {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start': 0},
-            {'lat': 55.0, 'lng': 28.0, 'country_code': 'PL', 'distance_from_start': 700},
+            {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start_km': 0},
+            {'lat': 55.0, 'lng': 28.0, 'country_code': 'PL', 'distance_from_start_km': 700},
         ]
         
         with pytest.raises(PlanningError, match="exceeds usable range"):
@@ -145,9 +145,9 @@ class TestMinimumStopsStrategy:
         # First segment consumes exactly to reservoir level
         # Max range: 733km, after 633km we have 100km left (= reservoir)
         waypoints = [
-            {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start': 0},
-            {'lat': 52.5, 'lng': 22.0, 'country_code': 'PL', 'distance_from_start': 633},
-            {'lat': 53.0, 'lng': 23.0, 'country_code': 'PL', 'distance_from_start': 700},
+            {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start_km': 0},
+            {'lat': 52.5, 'lng': 22.0, 'country_code': 'PL', 'distance_from_start_km': 633},
+            {'lat': 53.0, 'lng': 23.0, 'country_code': 'PL', 'distance_from_start_km': 700},
         ]
         
         stops = strategy.calculate_plan(waypoints)
@@ -177,14 +177,14 @@ class TestMinimumStopsStrategy:
                     'lat': 52.0 + i * 0.1,
                     'lng': 21.0 + i * 0.1,
                     'country_code': 'PL',
-                    'distance_from_start': 990
+                    'distance_from_start_km': 990
                 })
             else:
                 waypoints.append({
                     'lat': 52.0 + i * 0.1,
                     'lng': 21.0 + i * 0.1,
                     'country_code': 'PL',
-                    'distance_from_start': i * 100
+                    'distance_from_start_km': i * 100
                 })
         
         stops = strategy.calculate_plan(waypoints)
@@ -213,7 +213,7 @@ class TestMinimumStopsStrategy:
         strategy = MinimumStopsStrategy(car_gasoline, reservoir_km=100)
         
         waypoints = [
-            {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start': 0},
+            {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start_km': 0},
         ]
         
         with pytest.raises(PlanningError, match="at least 2 waypoints"):

@@ -107,8 +107,8 @@ class TestRefuelPlanCreate:
             destination='London, UK',
             total_distance_km=Decimal('450.00'),
             waypoints=[
-                {'lat': 48.8566, 'lng': 2.3522, 'country_code': 'FR', 'distance_from_start': 0},
-                {'lat': 51.5074, 'lng': -0.1278, 'country_code': 'UK', 'distance_from_start': 450}
+                {'lat': 48.8566, 'lng': 2.3522, 'country_code': 'FR', 'distance_from_start_km': 0},
+                {'lat': 51.5074, 'lng': -0.1278, 'country_code': 'UK', 'distance_from_start_km': 450}
             ],
             countries=['FR', 'UK']
         )
@@ -141,8 +141,8 @@ class TestRefuelPlanCreate:
             destination='End',
             total_distance_km=Decimal('1000.00'),
             waypoints=[
-                {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start': 0},
-                {'lat': 55.0, 'lng': 28.0, 'country_code': 'PL', 'distance_from_start': 1000}
+                {'lat': 52.0, 'lng': 21.0, 'country_code': 'PL', 'distance_from_start_km': 0},
+                {'lat': 55.0, 'lng': 28.0, 'country_code': 'PL', 'distance_from_start_km': 1000}
             ],
             countries=['PL']
         )
@@ -196,8 +196,8 @@ class TestRefuelPlanList:
             destination='London, UK',
             total_distance_km=Decimal('450.00'),
             waypoints=[
-                {'lat': 48.8566, 'lng': 2.3522, 'country_code': 'FR', 'distance_from_start': 0},
-                {'lat': 51.5074, 'lng': -0.1278, 'country_code': 'UK', 'distance_from_start': 450}
+                {'lat': 48.8566, 'lng': 2.3522, 'country_code': 'FR', 'distance_from_start_km': 0},
+                {'lat': 51.5074, 'lng': -0.1278, 'country_code': 'UK', 'distance_from_start_km': 450}
             ],
             countries=['FR', 'UK']
         )
@@ -255,8 +255,8 @@ class TestRefuelPlanRetrieve:
             destination='London, UK',
             total_distance_km=Decimal('450.00'),
             waypoints=[
-                {'lat': 48.8566, 'lng': 2.3522, 'country_code': 'FR', 'distance_from_start': 0},
-                {'lat': 51.5074, 'lng': -0.1278, 'country_code': 'UK', 'distance_from_start': 450}
+                {'lat': 48.8566, 'lng': 2.3522, 'country_code': 'FR', 'distance_from_start_km': 0},
+                {'lat': 51.5074, 'lng': -0.1278, 'country_code': 'UK', 'distance_from_start_km': 450}
             ],
             countries=['FR', 'UK']
         )

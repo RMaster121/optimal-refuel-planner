@@ -45,8 +45,8 @@ class MinimumStopsStrategy(BaseRefuelStrategy):
             next_waypoint = waypoints[i + 1]
             
             # Calculate segment distance
-            current_distance = Decimal(str(current_waypoint['distance_from_start']))
-            next_distance = Decimal(str(next_waypoint['distance_from_start']))
+            current_distance = Decimal(str(current_waypoint['distance_from_start_km']))
+            next_distance = Decimal(str(next_waypoint['distance_from_start_km']))
             segment_distance = next_distance - current_distance
             
             # Check if we need to refuel at current waypoint
@@ -78,8 +78,8 @@ class MinimumStopsStrategy(BaseRefuelStrategy):
     def _validate_segments(self, waypoints: list[dict]) -> None:
         """Validate that all route segments are feasible."""
         for i in range(len(waypoints) - 1):
-            current_distance = Decimal(str(waypoints[i]['distance_from_start']))
-            next_distance = Decimal(str(waypoints[i + 1]['distance_from_start']))
+            current_distance = Decimal(str(waypoints[i]['distance_from_start_km']))
+            next_distance = Decimal(str(waypoints[i + 1]['distance_from_start_km']))
             segment_distance = next_distance - current_distance
             
             if segment_distance > self.usable_range_km:
