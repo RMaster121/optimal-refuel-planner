@@ -200,8 +200,8 @@ def route(db, user):
         destination='Berlin, Germany',
         total_distance_km=Decimal('520.00'),
         waypoints=[
-            {'lat': 52.2297, 'lng': 21.0122, 'country_code': 'PL', 'distance_from_start': 0},
-            {'lat': 52.5200, 'lng': 13.4050, 'country_code': 'DE', 'distance_from_start': 520}
+            {'lat': 52.2297, 'lng': 21.0122, 'country_code': 'PL', 'distance_from_start_km': 0},
+            {'lat': 52.5200, 'lng': 13.4050, 'country_code': 'DE', 'distance_from_start_km': 520}
         ],
         countries=['PL', 'DE']
     )

@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_spectacular",
     "corsheaders",
     "users",
     "cars",
@@ -136,6 +137,66 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Optimal Refuel Planner API",
+    "DESCRIPTION": (
+        "REST API for planning optimal refueling stops across Europe. "
+        "Upload GPX routes, manage vehicles, get fuel prices, and calculate cost-effective refueling strategies."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # Schema generation settings
+    "SCHEMA_PATH_PREFIX": r"/api/",
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SORT_OPERATIONS": False,  # Keep operations in URL order
+    # Swagger UI settings
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": False,  # Hide operation IDs for cleaner UI
+        "defaultModelsExpandDepth": 2,
+        "defaultModelExpandDepth": 2,
+        "displayRequestDuration": True,
+        "docExpansion": "list",  # Show endpoints collapsed by default
+        "filter": True,  # Enable search/filter
+        "showExtensions": True,
+        "showCommonExtensions": True,
+    },
+    # Authentication settings
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "Bearer": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": "Enter your JWT access token (obtain from /api/auth/login/)",
+            }
+        }
+    },
+    "SECURITY": [{"Bearer": []}],
+    # Documentation enhancements
+    "POSTPROCESSING_HOOKS": [],
+    "PREPROCESSING_HOOKS": [],
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+    "SERVERS": [
+        {"url": "http://localhost:8000", "description": "Local Development Server"},
+        {"url": "http://localhost:8000", "description": "Production Server (update in production)"},
+    ],
+    # Tag settings for better organization
+    "TAGS": [
+        {"name": "Authentication", "description": "User authentication and token management"},
+        {"name": "Cars", "description": "Manage user vehicles and fuel consumption profiles"},
+        {"name": "Routes", "description": "Upload and manage GPX routes with waypoint information"},
+        {"name": "Fuel Prices", "description": "Access fuel price data across European countries"},
+        {"name": "Refuel Plans", "description": "Generate and manage optimal refueling plans"},
+    ],
+    # Response settings
+    "ENUM_NAME_OVERRIDES": {},
+    "DISABLE_ERRORS_AND_WARNINGS": False,
+    "AUTHENTICATION_WHITELIST": [],
 }
 
 SIMPLE_JWT = {
@@ -148,7 +209,42 @@ SIMPLE_JWT = {
 
 _raw_cors_origins = config("DJANGO_ALLOWED_ORIGINS", default="", cast=Csv())
 CORS_ALLOWED_ORIGINS = [origin for origin in _raw_cors_origins if origin]
-CORS_ALLOW_ALL_ORIGINS = not CORS_ALLOWED_ORIGINS
+
+# In development, allow all origins for Swagger UI to work
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOW_ALL_ORIGINS = not CORS_ALLOWED_ORIGINS
+
+CORS_ALLOW_CREDENTIALS = True
+
+# CORS headers configuration for Swagger UI
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CORS_EXPOSE_HEADERS = [
+    "Content-Type",
+    "X-CSRFToken",
+]
+
 CSRF_TRUSTED_ORIGINS = [
     origin for origin in config("DJANGO_CSRF_TRUSTED_ORIGINS", default="", cast=Csv()) if origin
 ]

@@ -1,6 +1,7 @@
 """Views for the Route API."""
 
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse, OpenApiParameter
 from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
@@ -16,27 +17,70 @@ class RoutePagination(PageNumberPagination):
     max_page_size = 100
 
 
+@extend_schema(tags=["Routes"])
+@extend_schema_view(
+    list=extend_schema(
+        summary="List user's routes",
+        description="Retrieve a paginated list of routes uploaded by the authenticated user.",
+        parameters=[
+            OpenApiParameter(name="search", description="Search by origin or destination", required=False),
+            OpenApiParameter(name="ordering", description="Order by: created_at, total_distance_km", required=False),
+            OpenApiParameter(name="page", description="Page number", required=False, type=int),
+            OpenApiParameter(name="page_size", description="Number of results per page (max 100)", required=False, type=int),
+        ],
+        responses={200: RouteSerializer(many=True)},
+    ),
+    create=extend_schema(
+        summary="Upload GPX route",
+        description="Upload a GPX file to create a new route. The system will parse waypoints and identify countries along the route.",
+        request=RouteCreateSerializer,
+        responses={
+            201: RouteSerializer,
+            400: OpenApiResponse(description="Invalid GPX file or data"),
+        },
+    ),
+    retrieve=extend_schema(
+        summary="Get route details",
+        description="Retrieve detailed information about a specific route including waypoints and countries.",
+        responses={
+            200: RouteSerializer,
+            404: OpenApiResponse(description="Route not found"),
+        },
+    ),
+    update=extend_schema(
+        summary="Update route",
+        description="Fully update route information. Note: Not recommended for GPX-based routes. Create a new route instead.",
+        request=RouteSerializer,
+        responses={
+            200: RouteSerializer,
+            400: OpenApiResponse(description="Invalid route data"),
+            404: OpenApiResponse(description="Route not found"),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Partially update route",
+        description="Update specific route fields.",
+        request=RouteSerializer,
+        responses={
+            200: RouteSerializer,
+            400: OpenApiResponse(description="Invalid route data"),
+            404: OpenApiResponse(description="Route not found"),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Delete route",
+        description="Permanently delete a route and all associated data.",
+        responses={
+            204: OpenApiResponse(description="Route successfully deleted"),
+            404: OpenApiResponse(description="Route not found"),
+        },
+    ),
+)
 class RouteViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing user routes.
     
-    Provides complete CRUD operations:
-    - list: GET /api/routes/ - List user's routes
-    - create: POST /api/routes/ - Upload GPX file to create route
-    - retrieve: GET /api/routes/{id}/ - Get route details
-    - update: PUT /api/routes/{id}/ - Full update (not recommended for GPX routes)
-    - partial_update: PATCH /api/routes/{id}/ - Partial update
-    - destroy: DELETE /api/routes/{id}/ - Delete route
-    
     All endpoints require authentication. Users can only access their own routes.
-    
-    GPX Upload:
-    POST /api/routes/
-    Content-Type: multipart/form-data
-    Body: {
-        "gpx_file": <file>,
-        "waypoint_interval_km": 50  (optional, default: 50)
-    }
     """
     permission_classes = [IsAuthenticated]
     pagination_class = RoutePagination
