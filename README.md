@@ -5,17 +5,6 @@
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Django](https://img.shields.io/badge/django-4.2+-green.svg)](https://www.djangoproject.com/)
 
-## ✅ MVP Status
-
-The MVP is **COMPLETE** and includes:
-
-- ✅ User authentication (JWT)
-- ✅ Car profile management
-- ✅ GPX route upload & parsing
-- ✅ Offline country detection
-- ✅ Minimum Stops refuel planning algorithm
-- ✅ Complete REST API
-
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -141,7 +130,16 @@ docker-compose exec web python manage.py migrate
 
 ## 📄 License
 
-TBD - To be determined
+This project is licensed under the MIT License - see the [`LICENSE`](LICENSE) file for details.
+
+---
+
+## 👤 Author
+
+**Rafał Szczerba**
+
+- GitHub: [@rafal-szczerba](https://github.com/rafal-szczerba)
+- Email: rafal.szczerba@example.com
 
 ---
 
