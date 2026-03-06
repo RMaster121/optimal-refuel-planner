@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "drf_spectacular",
     "corsheaders",
+    "django_celery_results",
     "users",
     "cars",
     "routes",
@@ -76,12 +77,9 @@ DATABASES = {
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": config("REDIS_URL", default="redis://redis:6379/1"),
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "cache_table",
         "TIMEOUT": config("CACHE_DEFAULT_TIMEOUT", default=300, cast=int),
-        "OPTIONS": {
-            "ssl_cert_reqs": None,
-        },
     }
 }
 
@@ -93,7 +91,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Warsaw"
 USE_I18N = True
 USE_TZ = True
 
@@ -254,3 +252,26 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
 INTERNAL_IPS = ["127.0.0.1", "localhost"]
+
+# Celery Configuration
+CELERY_BROKER_URL = config(
+    "CELERY_BROKER_URL",
+    default="amqp://guest:guest@rabbitmq:5672//"
+)
+CELERY_RESULT_BACKEND = config(
+    "CELERY_RESULT_BACKEND",
+    default="django-db"  # Store task results in database
+)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes max per task
+CELERY_RESULT_EXTENDED = True
+
+# Fuel Price Scraper Configuration
+FUEL_PRICE_SOURCE_URL = config(
+    "FUEL_PRICE_SOURCE_URL",
+    default="https://www.odyssee-mure.eu/data-tools/price-energy-data/table-road-fuel-prices.html"
+)

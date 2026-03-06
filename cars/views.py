@@ -42,9 +42,10 @@ class CarPagination(PageNumberPagination):
             OpenApiExample(
                 "Car Example",
                 value={
-                    "name": "Tesla Model 3",
-                    "fuel_type": "electric",
-                    "fuel_consumption_per_100km": "15.5",
+                    "name": "Volkswagen Golf",
+                    "fuel_type": "diesel",
+                    "avg_consumption": "15.5",
+                    "tank_capacity": "50"
                 },
                 request_only=True,
             ),

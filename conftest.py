@@ -291,3 +291,77 @@ def gpx_file_simple(simple_gpx_content):
     gpx_file.name = 'test_route.gpx'
     gpx_file.size = len(gpx_bytes)
     return gpx_file
+
+
+# ============================================================================
+# SCRAPER FIXTURES
+# ============================================================================
+
+@pytest.fixture
+def sample_scraper_html():
+    """Load sample HTML for scraper tests."""
+    from pathlib import Path
+    fixture_path = Path(__file__).parent / 'fuel_prices' / 'tests' / 'scrapers' / 'fixtures' / 'sample_html.html'
+    return fixture_path.read_text()
+
+
+@pytest.fixture
+def mock_scraper_response(sample_scraper_html):
+    """Mock HTTP response for scraper tests."""
+    from unittest.mock import Mock
+    response = Mock()
+    response.status_code = 200
+    response.text = sample_scraper_html
+    response.content = sample_scraper_html.encode('utf-8')
+    return response
+
+
+@pytest.fixture
+def scraped_fuel_price_data():
+    """Sample ScrapedFuelPrice data for testing."""
+    from fuel_prices.scrapers.base import ScrapedFuelPrice
+    from django.utils import timezone
+    
+    return ScrapedFuelPrice(
+        country_name='Poland',
+        country_code='PL',
+        fuel_type='gasoline',
+        price_eur=1.397,
+        scraped_at=timezone.now(),
+        source_url='https://example.com/prices'
+    )
+
+
+@pytest.fixture
+def scraped_fuel_price_batch():
+    """Batch of ScrapedFuelPrice data for testing."""
+    from fuel_prices.scrapers.base import ScrapedFuelPrice
+    from django.utils import timezone
+    
+    now = timezone.now()
+    return [
+        ScrapedFuelPrice(
+            country_name='Poland',
+            country_code='PL',
+            fuel_type='gasoline',
+            price_eur=1.397,
+            scraped_at=now,
+            source_url='https://example.com/prices'
+        ),
+        ScrapedFuelPrice(
+            country_name='Germany',
+            country_code='DE',
+            fuel_type='diesel',
+            price_eur=1.622,
+            scraped_at=now,
+            source_url='https://example.com/prices'
+        ),
+        ScrapedFuelPrice(
+            country_name='Czech Republic',
+            country_code='CZ',
+            fuel_type='gasoline',
+            price_eur=1.429,
+            scraped_at=now,
+            source_url='https://example.com/prices'
+        ),
+    ]

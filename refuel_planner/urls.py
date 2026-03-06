@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import (
@@ -10,7 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 
-@api_view(["GET"])
+@api_view(["GET", "HEAD"])
 @permission_classes([AllowAny])
 def health_check(request):
     """Health check endpoint for load balancers and monitoring."""
@@ -30,4 +32,4 @@ urlpatterns = [
     path("api/routes/", include("routes.urls")),
     path("api/fuel-prices/", include("fuel_prices.urls")),
     path("api/refuel-plans/", include("planner.urls")),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -3,6 +3,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse, OpenApiParameter
 from rest_framework import viewsets, filters
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 
@@ -33,7 +34,9 @@ class RoutePagination(PageNumberPagination):
     create=extend_schema(
         summary="Upload GPX route",
         description="Upload a GPX file to create a new route. The system will parse waypoints and identify countries along the route.",
-        request=RouteCreateSerializer,
+        request={
+            'multipart/form-data': RouteCreateSerializer,
+        },
         responses={
             201: RouteSerializer,
             400: OpenApiResponse(description="Invalid GPX file or data"),
@@ -83,6 +86,7 @@ class RouteViewSet(viewsets.ModelViewSet):
     All endpoints require authentication. Users can only access their own routes.
     """
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
     pagination_class = RoutePagination
     filter_backends = [
         DjangoFilterBackend,
