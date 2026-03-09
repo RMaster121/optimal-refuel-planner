@@ -41,6 +41,10 @@ class Route(ValidatedModel):
         blank=True,
         help_text="List of ISO country codes encountered along the route.",
     )
+    segments = models.JSONField(
+        default=list,
+        help_text="Route aggregated into continuous country blocks from border to border.",
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text="Timestamp when the route was created.",

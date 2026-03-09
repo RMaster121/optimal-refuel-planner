@@ -28,7 +28,8 @@ class OfflineGeocoder:
         if OfflineGeocoder._world_data is None:
             self._load_boundaries()
 
-    def _load_boundaries(self):
+    @staticmethod
+    def _load_boundaries():
         """Load Natural Earth shapefile data once and cache."""
         try:
             data_path = os.path.join(
@@ -47,7 +48,8 @@ class OfflineGeocoder:
         except Exception as e:
             raise GeocodingError(f"Failed to load Natural Earth data: {str(e)}")
 
-    def get_country(self, lat: float, lng: float) -> Dict[str, str]:
+    @staticmethod
+    def get_country(lat: float, lng: float) -> Dict[str, str]:
         """
         Get country for given coordinates using offline boundary data.
 

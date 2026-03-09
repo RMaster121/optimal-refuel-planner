@@ -2,9 +2,14 @@
 import os
 import sys
 
+# import pydevd_pycharm
 
 def main():
     """Run administrative tasks."""
+
+    # Connect to the PyCharm debug server
+    # pydevd_pycharm.settrace('host.docker.internal', port=5789, stdoutToServer=True, stderrToServer=True, suspend=False)
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "refuel_planner.settings")
     try:
         from django.core.management import execute_from_command_line  # pylint: disable=import-outside-toplevel

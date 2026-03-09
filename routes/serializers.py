@@ -25,6 +25,7 @@ class RouteSerializer(serializers.ModelSerializer):
             'total_distance_km',
             'waypoints',
             'countries',
+            'segments',
             'created_at',
         ]
         read_only_fields = ['id', 'created_at']
@@ -66,6 +67,7 @@ class RouteCreateSerializer(serializers.ModelSerializer):
             'total_distance_km',
             'waypoints',
             'countries',
+            'segments',
             'created_at',
         ]
         read_only_fields = [
@@ -75,6 +77,7 @@ class RouteCreateSerializer(serializers.ModelSerializer):
             'total_distance_km',
             'waypoints',
             'countries',
+            'segments',
             'created_at',
         ]
     
@@ -129,7 +132,8 @@ class RouteCreateSerializer(serializers.ModelSerializer):
                 destination=route_data['destination'],
                 total_distance_km=Decimal(str(route_data['total_distance_km'])),
                 waypoints=route_data['waypoints'],
-                countries=route_data['countries']
+                countries=route_data['countries'],
+                segments=route_data['segments']
             )
             
             return route

@@ -10,7 +10,9 @@ from cars.models import Car
 from fuel_prices.models import Country, FuelPrice
 from planner.exceptions import PlanningError
 from planner.models import RefuelPlan, RefuelStop
+from planner.strategies.balanced_strategy import BalancedStrategy
 from planner.strategies.base_strategy import BaseRefuelStrategy
+from planner.strategies.cheapest_strategy import CheapestStrategy
 from planner.strategies.minimum_stops_strategy import MinimumStopsStrategy
 from refuel_planner.choices import OptimizationStrategy
 from routes.models import Route
@@ -22,6 +24,8 @@ class PlannerService:
     # Strategy mapping
     STRATEGY_MAP: dict[str, Type[BaseRefuelStrategy]] = {
         OptimizationStrategy.MIN_STOPS: MinimumStopsStrategy,
+        OptimizationStrategy.CHEAPEST: CheapestStrategy,
+        OptimizationStrategy.BALANCED: BalancedStrategy,
     }
 
     def __init__(self, route: Route, car: Car, reservoir_km: int, strategy: str):
@@ -50,13 +54,18 @@ class PlannerService:
         Raises:
             PlanningError: If planning fails for any reason
         """
-        fuel_prices = self._get_fuel_prices()
+        fuel_prices_models = self._get_fuel_prices()
+
+        fuel_prices_decimal = {
+            code: model.price_per_liter
+            for code, model in fuel_prices_models.items()
+        }
         
-        strategy = self._get_strategy_instance()
+        strategy = self._get_strategy_instance(fuel_prices_decimal)
         
-        stops_data = strategy.calculate_plan(self.route.waypoints)
+        stops_data = strategy.calculate_plan(self.route.segments, self.route.waypoints)
         
-        total_fuel_liters, total_cost = self._calculate_totals(stops_data, fuel_prices)
+        total_fuel_liters, total_cost = self._calculate_totals(stops_data, fuel_prices_models)
         
         plan = RefuelPlan.objects.create(
             route=self.route,
@@ -68,7 +77,7 @@ class PlannerService:
             number_of_stops=len(stops_data),
         )
         
-        self._create_stops(plan, stops_data, fuel_prices)
+        self._create_stops(plan, stops_data, fuel_prices_models)
         
         return plan
 
@@ -112,7 +121,7 @@ class PlannerService:
         
         return fuel_prices
 
-    def _get_strategy_instance(self) -> BaseRefuelStrategy:
+    def _get_strategy_instance(self, fuel_prices_decimal: dict[str, FuelPrice]) -> BaseRefuelStrategy:
         """
         Get strategy instance based on choice.
         
@@ -128,8 +137,8 @@ class PlannerService:
             raise PlanningError(
                 f"Strategy '{self.strategy_choice}' is not yet implemented"
             )
-        
-        return strategy_class(self.car, self.reservoir_km)
+
+        return strategy_class(self.car, self.reservoir_km, fuel_prices_decimal)
 
     def _calculate_totals(
         self,
@@ -151,7 +160,13 @@ class PlannerService:
         total_fuel_liters = ((total_distance / Decimal('100')) * self.car.avg_consumption).quantize(Decimal('0.01'))
         
         # Calculate total cost from stops
-        total_cost = Decimal('0')
+        start_country_code = self.route.origin
+        if self.route.countries:
+            start_country_code = self.route.countries[0].upper()
+
+        initial_fuel_price = fuel_prices[start_country_code].price_per_liter
+        total_cost = self.car.tank_capacity * initial_fuel_price
+
         for stop in stops_data:
             fuel_liters = stop['fuel_to_add_liters']
             country_code = stop['country_code'].upper()

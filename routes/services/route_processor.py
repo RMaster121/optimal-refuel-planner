@@ -1,9 +1,10 @@
 """Process uploaded GPX files into route data."""
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional
 
 from routes.exceptions import RouteProcessingError, InvalidGPXFileError, GeocodingError
 from routes.services.gpx_parser import GPXParser
+from routes.services.helpers import m_to_km_round
 from routes.services.offline_geocoder import OfflineGeocoder
 
 
@@ -37,12 +38,21 @@ class RouteProcessor:
         try:
             gpx_data = self.gpx_parser.parse_gpx_file(gpx_file)
 
+            trackpoints = gpx_data['trackpoints']
+
             waypoints = self.gpx_parser.generate_waypoints(
-                gpx_data['trackpoints'],
+                trackpoints,
                 waypoint_interval_km
             )
 
-            waypoints, countries = self._identify_countries(waypoints)
+            waypoints = self.gpx_parser.inject_borders_and_geocode(
+                waypoints,
+                trackpoints,
+                self._safe_geocode
+            )
+
+            countries = self._extract_ordered_countries(waypoints)
+            segments = self._generate_segments(waypoints)
 
             origin_info = self.geocoder.get_country(
                 waypoints[0]['lat'],
@@ -56,50 +66,71 @@ class RouteProcessor:
             return {
                 'origin': origin_info['country_name'],
                 'destination': dest_info['country_name'],
-                'total_distance_km': round(gpx_data['total_distance_m'] / 1000, 2),
+                'total_distance_km': m_to_km_round(gpx_data['total_distance_m']),
                 'waypoints': waypoints,
+                'segments': segments,
                 'countries': countries
             }
 
         except (InvalidGPXFileError, GeocodingError) as e:
-            raise
+            raise RouteProcessingError(e)
         except Exception as e:
             raise RouteProcessingError(f"Route processing failed: {str(e)}")
 
-    def _identify_countries(self, waypoints: List[Dict]) -> Tuple[List[Dict], List[str]]:
+    def _safe_geocode(self, lat: float, lng: float) -> Optional[str]:
         """
-        Geocode waypoints to identify countries using offline data.
-        
-        Args:
-            waypoints: List of waypoint dicts with lat/lng
-            
-        Returns:
-            Tuple of (enhanced_waypoints, ordered_countries)
-            - enhanced_waypoints: Waypoints with country_code added
-            - ordered_countries: Unique country codes in order of appearance
+        Inject geocoder function into parser
         """
-        enhanced_waypoints = []
-        seen_countries = set()
-        ordered_countries = []
+        try:
+            return self.geocoder.get_country(lat, lng)['country_code']
+        except GeocodingError:
+            return None
 
-        for waypoint in waypoints:
-            try:
-                country_info = self.geocoder.get_country(
-                    waypoint['lat'],
-                    waypoint['lng']
-                )
-                waypoint['country_code'] = country_info['country_code']
+    @staticmethod
+    def _extract_ordered_countries(waypoints: List[Dict]) -> List[str]:
+        """
+        Extract list of ordered countries from waypoints.
+        """
+        seen = set()
+        ordered = []
+        for wp in waypoints:
+            cc = wp.get('country_code')
+            if cc and cc not in seen:
+                seen.add(cc)
+                ordered.append(cc)
+        return ordered
 
-                if country_info['country_code'] not in seen_countries:
-                    seen_countries.add(country_info['country_code'])
-                    ordered_countries.append(country_info['country_code'])
+    def _generate_segments(self, waypoints: List[Dict]) -> List[Dict]:
+        """Tworzy zbiór bloków krajowych na podstawie geokodowanych waypointów i granic."""
+        if not waypoints:
+            return []
 
-            except GeocodingError:
-                waypoint['country_code'] = (
-                    enhanced_waypoints[-1]['country_code']
-                    if enhanced_waypoints else None
-                )
+        segments = []
+        start_wp = waypoints[0]
+        current_country = start_wp['country_code']
 
-            enhanced_waypoints.append(waypoint)
+        for i in range(1, len(waypoints)):
+            wp = waypoints[i]
+            if wp.get('country_code') != current_country:
+                segments.append({
+                    'country_code': current_country,
+                    'start_distance_km': round(start_wp['distance_from_start_km'], 2),
+                    'end_distance_km': round(wp['distance_from_start_km'], 2),
+                    'distance_km': round(wp['distance_from_start_km'] - start_wp['distance_from_start_km'], 2),
+                    'entry_lat': start_wp.get('lat'),
+                    'entry_lng': start_wp.get('lng')
+                })
+                current_country = wp['country_code']
+                start_wp = wp
 
-        return enhanced_waypoints, ordered_countries
+        # Zamykamy ostatni segment trasy
+        last_wp = waypoints[-1]
+        segments.append({
+            'country_code': current_country,
+            'start_distance_km': round(start_wp['distance_from_start_km'], 2),
+            'end_distance_km': round(last_wp['distance_from_start_km'], 2),
+            'distance_km': round(last_wp['distance_from_start_km'] - start_wp['distance_from_start_km'], 2),
+            'entry_lat': start_wp.get('lat'),
+            'entry_lng': start_wp.get('lng')
+        })
+        return segments

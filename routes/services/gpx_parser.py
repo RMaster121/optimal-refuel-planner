@@ -7,23 +7,24 @@ Waypoint intervals balance performance vs accuracy:
 - 25km optional: For small countries (Luxembourg, Liechtenstein) or complex tri-border areas
 """
 
-from math import radians, sin, cos, sqrt, atan2
-from typing import Dict, List
+from typing import Dict, List, Callable, Optional
 
 import gpxpy
 
 from routes.exceptions import InvalidGPXFileError
+from routes.services.helpers import haversine_distance, m_to_km_round
 
 
 class GPXParser:
     """Parse GPX files to extract route information."""
+    DIST_FROM_START = 'distance_from_start_km'
 
     def parse_gpx_file(self, gpx_file) -> Dict:
         """
         Parse uploaded GPX file.
 
         Args:
-            gpx_file: File object from Django request.FILES
+            gpx_file: File object from Django request.
 
         Returns:
             dict - {
@@ -63,13 +64,16 @@ class GPXParser:
             if not trackpoints:
                 raise InvalidGPXFileError("No trackpoints found in GPX file")
 
+            trackpoints[0][self.DIST_FROM_START] = 0
+
             for i in range(1, len(trackpoints)):
                 prev = trackpoints[i-1]
                 curr = trackpoints[i]
-                total_distance += self._haversine_distance(
+                total_distance += haversine_distance(
                     prev['lat'], prev['lng'],
                     curr['lat'], curr['lng']
                 )
+                curr[self.DIST_FROM_START] = m_to_km_round(total_distance)
 
             name = "Uploaded Route"
             if gpx.tracks and gpx.tracks[0].name:
@@ -90,25 +94,8 @@ class GPXParser:
                 raise
             raise InvalidGPXFileError(f"Failed to parse GPX: {str(e)}")
 
-    def _haversine_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-        """
-        Calculate distance between two points using Haversine formula.
-        
-        Returns:
-            Distance in meters
-        """
-        R = 6371008.8  # Earth radius in meters
-
-        lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
-
-        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-        c = 2 * atan2(sqrt(a), sqrt(1-a))
-
-        return R * c
-
-    def generate_waypoints(self, trackpoints: List[Dict], interval_km: int = 50) -> List[Dict]:
+    @staticmethod
+    def generate_waypoints(trackpoints: List[Dict], interval_km: int = 50) -> List[Dict]:
         """
         Generate waypoints from trackpoints at specified intervals.
 
@@ -137,10 +124,10 @@ class GPXParser:
         next_waypoint_m = interval_m
 
         for i in range(1, len(trackpoints)):
-            prev = trackpoints[i-1]
+            prev = trackpoints[i - 1]
             curr = trackpoints[i]
 
-            segment_distance = self._haversine_distance(
+            segment_distance = haversine_distance(
                 prev['lat'], prev['lng'],
                 curr['lat'], curr['lng']
             )
@@ -150,11 +137,11 @@ class GPXParser:
                 waypoints.append({
                     'lat': curr['lat'],
                     'lng': curr['lng'],
-                    'distance_from_start_km': round(next_waypoint_m / 1000, 2)
+                    'distance_from_start_km': m_to_km_round(next_waypoint_m)
                 })
                 next_waypoint_m += interval_m
 
-        last_distance = round(cumulative_distance_m / 1000, 2)
+        last_distance = m_to_km_round(cumulative_distance_m)
         if waypoints[-1]['distance_from_start_km'] < last_distance:
             waypoints.append({
                 'lat': trackpoints[-1]['lat'],
@@ -163,3 +150,84 @@ class GPXParser:
             })
 
         return waypoints
+
+    def inject_borders_and_geocode(
+            self,
+            waypoints: List[Dict],
+            trackpoints: List[Dict],
+            geocode_func: Callable[[float, float], Optional[str]]
+    ) -> List[Dict]:
+        if not waypoints or not trackpoints:
+            return waypoints
+
+        enhanced_waypoints = []
+
+        prev_wp = waypoints[0]
+        prev_country = geocode_func(prev_wp['lat'], prev_wp['lng'])
+        prev_wp['country_code'] = prev_country
+        enhanced_waypoints.append(prev_wp)
+
+        for i in range(1, len(waypoints)):
+            curr_wp = waypoints[i]
+            curr_country = geocode_func(curr_wp['lat'], curr_wp['lng'])
+            curr_wp['country_code'] = curr_country
+
+            if curr_country and prev_country and curr_country != prev_country:
+                border_wp = self._binary_search_border(
+                    prev_wp, curr_wp, prev_country, curr_country,
+                    trackpoints, geocode_func
+                )
+                if border_wp:
+                    enhanced_waypoints.append(border_wp)
+
+            enhanced_waypoints.append(curr_wp)
+            prev_wp = curr_wp
+            prev_country = curr_country
+
+        return enhanced_waypoints
+
+    @staticmethod
+    def _binary_search_border(
+            wp_a: Dict,
+            wp_b: Dict,
+            country_a: str,
+            country_b: str,
+            trackpoints: List[Dict],
+            geocode_func: Callable[[float, float], Optional[str]]
+    ) -> Optional[Dict]:
+        """
+        Binary search on dense trackpoints to find the exact border crossing.
+        """
+        dist_a = wp_a.get('distance_from_start_km', 0.0)
+        dist_b = wp_b.get('distance_from_start_km', 0.0)
+
+        segment = [
+            tp for tp in trackpoints
+            if dist_a <= tp.get('distance_from_start_km', 0.0) <= dist_b
+        ]
+
+        if not segment:
+            return None
+
+        left, right = 0, len(segment) - 1
+        border_idx = right
+
+        while left <= right:
+            mid = (left + right) // 2
+            mid_tp = segment[mid]
+            mid_country = geocode_func(mid_tp['lat'], mid_tp['lng'])
+
+            if mid_country == country_a:
+                left = mid + 1
+            else:
+                border_idx = mid
+                right = mid - 1
+
+        border_tp = segment[border_idx]
+        return {
+            'lat': border_tp['lat'],
+            'lng': border_tp['lng'],
+            'distance_from_start_km': border_tp.get('distance_from_start_km', dist_a),
+            'country_code': country_b,
+            'is_border': True
+        }
