@@ -134,7 +134,7 @@ class CreateRefuelPlanSerializer(serializers.Serializer):
         route = validated_data['route']
         car = validated_data['car']
         reservoir_km = validated_data.get('reservoir_km', 100)
-        strategy = validated_data.get('optimization_strategy', OptimizationStrategy.MIN_STOPS)  # TODO: Magic value?
+        strategy = validated_data.get('optimization_strategy', OptimizationStrategy.MIN_STOPS)
         
         try:
             service = PlannerService(
