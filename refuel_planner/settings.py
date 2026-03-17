@@ -267,11 +267,11 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes max per task
+CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_RESULT_EXTENDED = True
 
 # Fuel Price Scraper Configuration
 FUEL_PRICE_SOURCE_URL = config(
     "FUEL_PRICE_SOURCE_URL",
-    default="https://www.odyssee-mure.eu/data-tools/price-energy-data/table-road-fuel-prices.html"
+    default="https://www.cargopedia.net/europe-fuel-prices"
 )

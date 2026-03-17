@@ -81,11 +81,12 @@ class FuelPriceLoader:
         
         for data in scraped_data:
             try:
-                self._load_single(data, auto_create_countries)
+                with transaction.atomic():
+                    self._load_single(data, auto_create_countries)
             except Exception as e:
                 self.logger.error(
                     f"Failed to load {data.country_name} {data.fuel_type}: {e}",
-                    exc_info=True
+                   exc_info=True
                 )
                 self.stats['errors'] += 1
         

@@ -6,6 +6,7 @@ import os
 
 from celery import Celery
 from celery.schedules import crontab
+from celery.signals import worker_ready
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'refuel_planner.settings')
 
@@ -28,6 +29,10 @@ app.conf.beat_schedule = {
 # Set timezone for scheduled tasks
 app.conf.timezone = 'Europe/Warsaw'
 
+
+@worker_ready.connect
+def trigger_startup_tasks(sender, **kwargs):
+    sender.app.send_task('fuel_prices.scrape_fuel_prices')
 
 @app.task(bind=True, ignore_result=True)
 def debug_task(self):
